@@ -1,10 +1,14 @@
 import numpy as np
+import matplotlib.pyplot as plt
 import streamlit as st
 from sklearn import datasets
 
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.svm import SVC
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import accuracy_score
+from sklearn.decomposition import PCA
 
 st.title("Explore different classifier")
 
@@ -28,8 +32,8 @@ def get_dataset(dataset_name):
     return X, y
 
 X, y = get_dataset(dataset_name)
-st.write("Shape of dataset", X.shape)
-st.write("Number of clases", len(np.unique(y)))
+st.write("**Shape of dataset:**", X.shape)
+st.write("**Number of clases:**", len(np.unique(y)))
 
 def add_parameter_ui(clf_name):
     params = dict()
@@ -59,3 +63,28 @@ def get_classifier(clf_name,params):
     return clf
 
 clf = get_classifier(classifier_name, params)
+
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=1234)
+
+clf.fit(X_train, y_train)
+y_pred = clf.predict(X_test)
+
+acc = accuracy_score(y_test, y_pred)
+st.write(f"""
+**Classifier** = {classifier_name}
+
+**Accuracy** = {acc}""")
+
+pca = PCA(2)
+X_projected = pca.fit_transform(X)
+
+x1 = X_projected[:,0]
+x2 = X_projected[:,1]
+
+fig = plt.figure()
+plt.scatter(x1, x2, c=y, alpha=0.8, cmap="viridis")
+plt.xlabel("Principal Component 1")
+plt.ylabel("Principal Component 2")
+plt.colorbar()
+
+st.pyplot(fig)
